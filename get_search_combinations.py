@@ -21,10 +21,18 @@ def create_search_combinations(tab: ctk.CTkFrame) -> None:
     output_text = ctk.CTkTextbox(tab, height=200, width=300)
     output_text.pack()
 
+    checkbox_frame = ctk.CTkFrame(tab)
+    checkbox_frame.pack(pady=10)
     ignore_colons = ctk.StringVar(value='0')
-    ignore_colons_checkbox = ctk.CTkCheckBox(tab, text="Ignore text before colons", variable=ignore_colons)
-    ignore_colons_checkbox.pack(pady=10)
+    ignore_colons_checkbox = ctk.CTkCheckBox(checkbox_frame, text="Ignore text before colons", variable=ignore_colons)
+    ignore_colons_checkbox.pack(side='left', padx=5)
     ignore_colons_checkbox.select()
+
+    enclose_in_quotes = ctk.StringVar(value='0')
+    enclose_in_quotes_checkbox = ctk.CTkCheckBox(checkbox_frame, text="Enclose each item in quotes", variable=enclose_in_quotes)
+    enclose_in_quotes_checkbox.pack(side='left', padx=5)
+    enclose_in_quotes_checkbox.select()
+
 
 
     def create_output() -> None:
@@ -42,7 +50,10 @@ def create_search_combinations(tab: ctk.CTkFrame) -> None:
                 return
         
         outputs = itertools.product(*input_lists)
-        output_strings = [' '.join([f'"{item.strip()}"' for item in output]) for output in outputs]
+        if enclose_in_quotes.get() == '1':
+            output_strings = [' '.join([f'"{item.strip()}"' for item in output]) for output in outputs]
+        else:
+            output_strings = [' '.join([item.strip() for item in output]) for output in outputs]
         output_content = '\n'.join(output_strings)
         output_text.delete('1.0', 'end')  # Clear previous output
         output_text.insert('end', output_content)  # Insert new output
@@ -58,7 +69,10 @@ def create_search_combinations(tab: ctk.CTkFrame) -> None:
             if not messagebox.askyesno("Confirmation", f"Warning: This will open {total_entries} tabs at once. Continue?"):
                 return
         for output in outputs:
-            search_query = ' '.join([f'"{item.strip()}"' for item in output])
+            if enclose_in_quotes.get() == '1':
+                search_query = ' '.join([f'"{item.strip()}"' for item in output])
+            else:
+                search_query = ' '.join([item.strip() for item in output])
             search_url = f"https://www.google.com/search?q={search_query}"
             webbrowser.open_new_tab(search_url)
 

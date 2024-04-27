@@ -11,8 +11,7 @@ CREATE_SEARCH_TERMS_WITH_AI_INSTRUCTIONS = """- Supports GPT-4 and Claude 3 AI m
 
 Click on the "Create Output" button to generate search terms. 
 The model will give you search terms based on the input text.
-You can use them as-is or modify them as needed - it's recommended you cut out extraneous search terms. 
-The model is prompted to err on the side of giving more info, not less.
+You can use them as-is or modify them as needed - it's recommended you cut out extraneous search terms. The model is prompted to err on the side of giving more info, not less.
 """
 
 GET_SEARCH_COMBINATIONS_INSTRUCTIONS = """Enter search inputs. Each line represents a group of search terms, e.g, cities. These can be grouped however you like.           
