@@ -20,8 +20,15 @@ Cities: Chicago, Illinois
 People: John Doe, Jane Smith
 Companies: Acme Corporation, Widget Co."""
 
+
 def create_search_terms(tab: ctk.CTkFrame) -> None:
     """Creates a tab for generating all possible combinations of search terms."""
+
+    model_label = ctk.CTkLabel(tab, text="Select the AI model to use:")
+    model_label.pack()
+    model_dropdown = ctk.CTkOptionMenu(tab, values=["GPT-4", "Claude 3"])
+    model_dropdown.pack()
+
     input_label = ctk.CTkLabel(tab, text="Enter raw text to extract search info from:")
     input_label.pack()
     input_text = ctk.CTkTextbox(tab, height=100, width=300)
@@ -67,7 +74,9 @@ def create_search_terms(tab: ctk.CTkFrame) -> None:
         except Exception as e:
             output_text.insert('end', f"Error: {e}")
 
+    MODEL_FUNCTIONS = {"GPT-4": create_openai_output, "Claude 3": create_anthropic_output}
     button_frame = ctk.CTkFrame(tab)
     button_frame.pack(pady=10)
-    output_button = ctk.CTkButton(button_frame, text="Create Output", command=create_anthropic_output)
+    output_button = ctk.CTkButton(button_frame, text="Create Output", 
+                                  command=MODEL_FUNCTIONS[model_dropdown.get()])
     output_button.pack(side='left', padx=5)

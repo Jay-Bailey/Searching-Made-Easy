@@ -23,7 +23,7 @@ def create_search_combinations(tab: ctk.CTkFrame) -> None:
 
     ignore_colons = ctk.StringVar(value='0')
     ignore_colons_checkbox = ctk.CTkCheckBox(tab, text="Ignore text before colons", variable=ignore_colons)
-    ignore_colons_checkbox.pack()
+    ignore_colons_checkbox.pack(pady=10)
     ignore_colons_checkbox.select()
 
 
