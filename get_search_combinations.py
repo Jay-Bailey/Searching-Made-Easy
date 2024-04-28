@@ -8,18 +8,31 @@ from tkinter import messagebox
 WARN_ON_SEARCH_COUNT = 1_000
 WARN_ON_TAB_COUNT = 100
 
+COMBINATION_SEPARATOR = '\n\n'
+TERM_SEPARATOR = '\n'
 
-def create_search_combinations(tab: ctk.CTkFrame) -> None:
+
+def create_search_combinations(root: ctk.CTk, tab: ctk.CTkFrame) -> None:
     """Creates a tab for generating all possible combinations of search terms."""
-    input_label = ctk.CTkLabel(tab, text="Enter search inputs (one per line, separated by commas):")
+
+    # TODO: Add box for negative inputs as well, like -soccer. (Don't include quotes for these.)
+    # TODO: Simple and advanced search options?
+    # TODO: Add master label(s) that let you decide which output subset to look for?
+    # TODO: Add a history of searches that gets added to when you press Search All. (Click restores you to it?)
+    # TODO: Add subset search option?
+    # TODO: Add priority system?
+    # TODO: Make all these above advanced terms, remember. 
+    # TODO: If a search term would have appeared in history, don't include it.
+    # TODO: Build as Mac.
+    input_label = ctk.CTkLabel(tab, text="Enter search inputs (one per line, groups separated by a blank line):")
     input_label.pack()
     input_text = ctk.CTkTextbox(tab, height=100, width=300)
-    input_text.pack()
+    input_text.pack(fill='both', expand=True)
 
     output_label = ctk.CTkLabel(tab, text="Output:")
     output_label.pack()
     output_text = ctk.CTkTextbox(tab, height=200, width=300)
-    output_text.pack()
+    output_text.pack(fill='both', expand=True)
 
     checkbox_frame = ctk.CTkFrame(tab)
     checkbox_frame.pack(pady=10)
@@ -34,14 +47,13 @@ def create_search_combinations(tab: ctk.CTkFrame) -> None:
     enclose_in_quotes_checkbox.select()
 
 
-
     def create_output() -> None:
         """Creates all possible combinations of the input lists and displays them in the output textbox."""
-        input_entries = input_text.get("1.0", "end-1c").split("\n")
+        input_entries = input_text.get("1.0", "end-1c").split(COMBINATION_SEPARATOR)
 
         if ignore_colons.get() == '1':
             input_entries = [entry.split(':')[-1].strip() for entry in input_entries]
-        input_lists = [entry.split(',') for entry in input_entries if entry.strip()]
+        input_lists = [entry.split(TERM_SEPARATOR) for entry in input_entries if entry.strip()]
 
         total_entries = np.prod([len(entry) for entry in input_lists])
         if total_entries > WARN_ON_SEARCH_COUNT:
@@ -50,10 +62,7 @@ def create_search_combinations(tab: ctk.CTkFrame) -> None:
                 return
         
         outputs = itertools.product(*input_lists)
-        if enclose_in_quotes.get() == '1':
-            output_strings = [' '.join([f'"{item.strip()}"' for item in output]) for output in outputs]
-        else:
-            output_strings = [' '.join([item.strip() for item in output]) for output in outputs]
+        output_strings = [' '.join([f'"{item.strip()}"' if enclose_in_quotes.get() == '1' else item.strip() for item in output]) for output in outputs]
         output_content = '\n'.join(output_strings)
         output_text.delete('1.0', 'end')  # Clear previous output
         output_text.insert('end', output_content)  # Insert new output
@@ -61,18 +70,16 @@ def create_search_combinations(tab: ctk.CTkFrame) -> None:
 
     def search_all() -> None:
         """Opens a new tab in the default web browser for each search query."""
-        input_entries = input_text.get("1.0", "end-1c").split("\n")
-        input_lists = [entry.split(',') for entry in input_entries if entry.strip()]
+        input_entries = input_text.get("1.0", "end-1c").split(COMBINATION_SEPARATOR)
+        input_lists = [entry.split(TERM_SEPARATOR) for entry in input_entries if entry.strip()]
         total_entries = np.prod([len(entry) for entry in input_lists])
         outputs = itertools.product(*input_lists)
         if total_entries > WARN_ON_TAB_COUNT:
             if not messagebox.askyesno("Confirmation", f"Warning: This will open {total_entries} tabs at once. Continue?"):
                 return
+
         for output in outputs:
-            if enclose_in_quotes.get() == '1':
-                search_query = ' '.join([f'"{item.strip()}"' for item in output])
-            else:
-                search_query = ' '.join([item.strip() for item in output])
+            search_query = ' '.join([f'"{item.strip()}"' if enclose_in_quotes.get() == '1' else item.strip() for item in output])
             search_url = f"https://www.google.com/search?q={search_query}"
             webbrowser.open_new_tab(search_url)
 

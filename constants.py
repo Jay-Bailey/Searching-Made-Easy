@@ -1,1 +1,1 @@
-HEIGHT, WIDTH = 550, 450
+DISALLOWED_FEATURES = ["Create Search Terms with AI"]

@@ -1,12 +1,19 @@
 import customtkinter as ctk
 
 from get_search_combinations import create_search_combinations
+from get_advanced_search_combinations import create_advanced_search_combinations
 from get_search_terms import create_search_terms
 from instructions import create_instructions_tab
-from constants import WIDTH, HEIGHT
+from constants import DISALLOWED_FEATURES
+
+FEATURES = {"Create Search Terms with AI": {"fn": create_search_terms, "width": 450, "height": 550}, 
+            "Get Search Combinations": {"fn": create_search_combinations, "width": 450, "height": 550},
+            "Get Search Combinations (Advanced)": {"fn": create_advanced_search_combinations, "width": 800, "height": 700},
+            "Instructions": {"fn": create_instructions_tab, "width": 450, "height": 550}}
 
 # Create the main tkinter window
 root = ctk.CTk()
+WIDTH, HEIGHT = 450, 550
 root.title("Searching Made Easy")
 root.geometry(f"{WIDTH}x{HEIGHT}")
 
@@ -14,17 +21,11 @@ root.geometry(f"{WIDTH}x{HEIGHT}")
 notebook = ctk.CTkTabview(root)
 notebook.pack(fill='both', expand=True)
 
-# Create Search Terms tab
-get_search_terms = notebook.add('Create Search Terms with AI')
-create_search_terms(get_search_terms)
-
-# Get search combinations tab
-get_search_combinations = notebook.add('Get Search Combinations')
-create_search_combinations(get_search_combinations)
-
-# Get instructions
-instructions = notebook.add('Instructions')
-create_instructions_tab(instructions)
+for feature, function_dict in FEATURES.items():
+    function = function_dict["fn"]
+    if feature not in DISALLOWED_FEATURES:
+        tab = notebook.add(feature)
+        function(root, tab)
 
 # Run the main tkinter loop
 if __name__ == "__main__":
