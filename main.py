@@ -13,7 +13,7 @@ FEATURES = {"Create Search Terms with AI": {"fn": create_search_terms, "width": 
 
 # Create the main tkinter window
 root = ctk.CTk()
-WIDTH, HEIGHT = 450, 550
+WIDTH, HEIGHT = 800, 750
 root.title("Searching Made Easy")
 root.geometry(f"{WIDTH}x{HEIGHT}")
 
