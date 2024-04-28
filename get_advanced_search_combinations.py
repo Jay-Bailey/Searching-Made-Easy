@@ -5,6 +5,8 @@ import webbrowser
 
 from tkinter import messagebox
 
+from layout_items import create_label_and_text, create_checkbox, create_button
+
 WARN_ON_SEARCH_COUNT = 1_000
 WARN_ON_TAB_COUNT = 100
 
@@ -29,24 +31,28 @@ history = set()
 
 def create_advanced_search_combinations(root: ctk.CTk, tab: ctk.CTkFrame) -> None:
     """Creates a tab for generating all possible combinations of search terms."""
-    # TODO: Refactor into classes.
+
+    # TODO: Add master label(s) that let you decide which output subset to look for?
+    # TODO: Add subset search option using checkboxes.
+    # TODO: Add names for searches in history.
+    # TODO: Make all these above advanced terms, remember. 
+    # TODO: Add priority system?
 
     def create_output() -> None:
         """Creates all possible combinations of the input lists and displays them in the output textbox."""
         input_entries = input_text.get("1.0", "end-1c").split(COMBINATION_SEPARATOR)
 
-        if ignore_colons.get() == '1':
+        if ignore_colons_checkbox.get() == 1:
             input_entries = [entry.split(':')[-1].strip() for entry in input_entries]
-        input_lists = [entry.split(TERM_SEPARATOR) for entry in input_entries if entry.strip()]
+        input_lists = [entry.split(TERM_SEPARATOR) for entry in input_entries if entry.strip()] # if entry.strip() removes empty entries
 
         total_entries = np.prod([len(entry) for entry in input_lists])
         if total_entries > WARN_ON_SEARCH_COUNT:
-            message = f"Warning: {total_entries} combinations will be generated. Continue?"
-            if not messagebox.askyesno("Confirmation", message):
+            if not messagebox.askyesno("Confirmation", f"Warning: {total_entries} combinations will be generated. Continue?"):
                 return
         
         outputs = itertools.product(*input_lists)
-        output_strings = [' '.join([f'"{item.strip()}"' if enclose_in_quotes.get() == '1' else item.strip() for item in output]) for output in outputs]
+        output_strings = [' '.join([f'"{item.strip()}"' if enclose_in_quotes_checkbox.get() == 1 else item.strip() for item in output]) for output in outputs]
 
         # Add negative search terms if present.
         if negative_input_text != PLACEHOLDER_NEGATIVE_INPUT_TEXT:
@@ -63,7 +69,7 @@ def create_advanced_search_combinations(root: ctk.CTk, tab: ctk.CTkFrame) -> Non
         """Opens a new tab in the default web browser for each search query."""
  
         queries = output_text.get("1.0", "end-1c").split('\n')
-        if avoid_repeats.get() == '1':
+        if avoid_repeats_checkbox.get() == 1:
             queries = [query for query in queries if query not in history]
 
         if len(queries) > WARN_ON_TAB_COUNT:
@@ -93,50 +99,18 @@ def create_advanced_search_combinations(root: ctk.CTk, tab: ctk.CTkFrame) -> Non
         history_text.insert('end', HISTORY_PLACEHOLDER)
         history_text.configure(state='disabled')
 
+    # Column 0: Input search terms.
+    input_label, input_text = create_label_and_text(tab, "Enter search inputs:", PLACEHOLDER_INPUT_TEXT, 0, 0, 200, 450)
+    negative_input_label, negative_input_text = create_label_and_text(tab, "Enter terms to exclude:", PLACEHOLDER_NEGATIVE_INPUT_TEXT, 0, 2, 200, 25)
+    ignore_colons_checkbox = create_checkbox(tab, "Ignore text before colons", 0, 4, True)
+    enclose_in_quotes_checkbox = create_checkbox(tab, "Enclose each item in quotes", 0, 5, True)
+    create_output_button = create_button(tab, "Create Output", create_output, 0, 6)
 
-    input_label = ctk.CTkLabel(tab, text="Enter search inputs:")
-    input_label.grid(column=0, row=0, padx=10)
-    input_text = ctk.CTkTextbox(tab, height=450, width=200)
-    input_text.insert('end', PLACEHOLDER_INPUT_TEXT)
-    input_text.grid(column=0, row=1, padx=10, sticky='n')
+    # Column 1: Output search terms.
+    output_label, output_text = create_label_and_text(tab, "Output:", PLACEHOLDER_RESULTS, 1, 0, 300, 575, rowspan=5)
+    search_button = create_button(tab, "Search All", search_all, 1, 6)
 
-    negative_input_label = ctk.CTkLabel(tab, text="Enter terms to exclude:")
-    negative_input_label.grid(column=0, row=2, padx=5)
-    negative_input_text = ctk.CTkTextbox(tab, height=25, width=200)
-    negative_input_text.insert('end', PLACEHOLDER_NEGATIVE_INPUT_TEXT)
-    negative_input_text.grid(column=0, row=3, padx=5)
-
-    output_label = ctk.CTkLabel(tab, text="Output:")
-    output_label.grid(column=1, row=0, padx=10)
-    output_text = ctk.CTkTextbox(tab, height=575, width=300)
-    output_text.insert('end', PLACEHOLDER_RESULTS)
-    output_text.grid(column=1, row=1, padx=10, rowspan=5, sticky='n')
-
-    history_label = ctk.CTkLabel(tab, text="History")
-    history_label.grid(column=2, row=0, padx=10)
-    history_text = ctk.CTkTextbox(tab, height=575, width=200)
-    history_text.insert('end', HISTORY_PLACEHOLDER)
-    history_text.configure(state='disabled')
-    history_text.grid(column=2, row=1, padx=10, rowspan=4, sticky='n')
-
-    avoid_repeats = ctk.StringVar(value='0')
-    avoid_repeats_checkbox = ctk.CTkCheckBox(tab, text="Avoid repeating searches", variable=avoid_repeats)
-    avoid_repeats_checkbox.grid(column=2, row=5, padx=10, pady=5, sticky='w')
-    avoid_repeats_checkbox.select()
-
-    ignore_colons = ctk.StringVar(value='0')
-    ignore_colons_checkbox = ctk.CTkCheckBox(tab, text="Ignore text before colons", variable=ignore_colons)
-    ignore_colons_checkbox.grid(column=0, row=4, padx=10, pady=5, sticky='w')
-    ignore_colons_checkbox.select()
-
-    enclose_in_quotes = ctk.StringVar(value='0')
-    enclose_in_quotes_checkbox = ctk.CTkCheckBox(tab, text="Enclose each item in quotes", variable=enclose_in_quotes)
-    enclose_in_quotes_checkbox.grid(column=0, row=5, padx=10, pady=5, sticky='w')
-    enclose_in_quotes_checkbox.select()
-
-    output_button = ctk.CTkButton(tab, text="Create Output", command=create_output)
-    output_button.grid(column=0, row=6, padx=10, pady=10)
-    search_button = ctk.CTkButton(tab, text="Search All", command=search_all)
-    search_button.grid(column=1, row=6, padx=10, pady=10)
-    clear_history_button = ctk.CTkButton(tab, text="Clear History", command=clear_history)
-    clear_history_button.grid(column=2, row=6, padx=10, pady=10)
+    # Column 2: Search history.
+    history_label, history_text = create_label_and_text(tab, "History", HISTORY_PLACEHOLDER, 2, 0, 200, 575, rowspan=4)
+    avoid_repeats_checkbox = create_checkbox(tab, "Avoid repeating searches", 2, 5, True)
+    clear_history_button = create_button(tab, "Clear History", clear_history, 2, 6)

@@ -15,15 +15,6 @@ TERM_SEPARATOR = '\n'
 def create_search_combinations(root: ctk.CTk, tab: ctk.CTkFrame) -> None:
     """Creates a tab for generating all possible combinations of search terms."""
 
-    # TODO: Add box for negative inputs as well, like -soccer. (Don't include quotes for these.)
-    # TODO: Simple and advanced search options?
-    # TODO: Add master label(s) that let you decide which output subset to look for?
-    # TODO: Add a history of searches that gets added to when you press Search All. (Click restores you to it?)
-    # TODO: Add subset search option?
-    # TODO: Add priority system?
-    # TODO: Make all these above advanced terms, remember. 
-    # TODO: If a search term would have appeared in history, don't include it.
-    # TODO: Build as Mac.
     input_label = ctk.CTkLabel(tab, text="Enter search inputs (one per line, groups separated by a blank line):")
     input_label.pack()
     input_text = ctk.CTkTextbox(tab, height=100, width=300)
