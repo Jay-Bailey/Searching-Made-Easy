@@ -5,14 +5,19 @@ import webbrowser
 
 from tkinter import messagebox
 
-from layout_items import create_label_and_text, create_checkbox, create_button
+from layout_items import create_label_and_text, create_checkbox, create_button, create_category_box
 
 WARN_ON_SEARCH_COUNT = 1_000
 WARN_ON_TAB_COUNT = 100
+NUM_CATEGORIES = 5
+ROWS_PER_CATEGORY = 3
+NUM_CHECKBOXES = 6
 
 COMBINATION_SEPARATOR = '\n\n'
 TERM_SEPARATOR = '\n'
 HISTORY_PLACEHOLDER = "History of searches will appear here."
+
+PLACEHOLDER_CATEGORY_TEXTS = ['John, Susan' if i == 0 else '' for i in range(NUM_CATEGORIES)]
 
 PLACEHOLDER_INPUT_TEXT = """John Doe
 Jane Smith
@@ -32,7 +37,7 @@ history = set()
 def create_advanced_search_combinations(root: ctk.CTk, tab: ctk.CTkFrame) -> None:
     """Creates a tab for generating all possible combinations of search terms."""
 
-    # TODO: Add master label(s) that let you decide which output subset to look for?
+    # TODO: Fix bug with master label if too long.
     # TODO: Add subset search option using checkboxes.
     # TODO: Add names for searches in history.
     # TODO: Make all these above advanced terms, remember. 
@@ -99,18 +104,70 @@ def create_advanced_search_combinations(root: ctk.CTk, tab: ctk.CTkFrame) -> Non
         history_text.insert('end', HISTORY_PLACEHOLDER)
         history_text.configure(state='disabled')
 
-    # Column 0: Input search terms.
-    input_label, input_text = create_label_and_text(tab, "Enter search inputs:", PLACEHOLDER_INPUT_TEXT, 0, 0, 200, 450)
-    negative_input_label, negative_input_text = create_label_and_text(tab, "Enter terms to exclude:", PLACEHOLDER_NEGATIVE_INPUT_TEXT, 0, 2, 200, 25)
-    ignore_colons_checkbox = create_checkbox(tab, "Ignore text before colons", 0, 4, True)
-    enclose_in_quotes_checkbox = create_checkbox(tab, "Enclose each item in quotes", 0, 5, True)
-    create_output_button = create_button(tab, "Create Output", create_output, 0, 6)
+    def populate_categories(category_texts: list[str]) -> list[str]:
+        """Alters the state of the checkboxes based on the category text."""
+        if category_texts == []:
+            category_texts = PLACEHOLDER_CATEGORY_TEXTS
+        category_checkbox_frames = []
+        category_texts = category_texts[-NUM_CATEGORIES:] # Only keep the last 5 categories. Hopefully this fixes this weird bug.
+        for i in range(NUM_CATEGORIES):
+            category_label, category_text, category_checkbox_frame = create_category_box(tab, f"Category {i+1}:", category_texts[i], 0, i*ROWS_PER_CATEGORY, 200, 25)  
+            category_checkbox_frames.append(category_checkbox_frame)
+
+        for i, frame in enumerate(category_checkbox_frames):
+            category_terms = category_texts[i].split(',')
+            category_terms = [t for t in category_terms if t.strip()]
+            for j, checkbox in enumerate(frame.winfo_children()):
+                if category_terms != [] and len(category_terms) > j:
+                    checkbox.configure(state='normal')
+                    checkbox.configure(text=category_terms[j].strip())
+                else:
+                    checkbox.configure(state='disabled')
+                    checkbox.configure(text=f"Checkbox {j+1}")
+        
+        return category_texts
+    
+    def get_text_from_column(tab: ctk.CTkFrame, column: int): 
+        """Gets all text from a given column in a tab."""
+        # TODO: This has a bug where it keeps appending the same text over and over again.
+        text = []
+        for widget in tab.winfo_children():
+            if isinstance(widget, ctk.CTkFrame) and widget.grid_info()['column'] == column:
+                text.extend(get_text_from_column(widget, column))
+            if isinstance(widget, ctk.CTkTextbox) and widget.grid_info()['column'] == column:
+                text.append(widget.get("1.0", "end-1c"))
+        return text
+    
+    def on_tab_click(event):
+        if event.widget == tab._canvas:
+            populate_categories(get_text_from_column(tab, 0))
+
+    def on_tab_open(event):
+        if event.widget == tab._canvas:
+            populate_categories(get_text_from_column(tab, 0))
+
+    # TODO: Have better way of using column and row numbers.
+
+    # Column 0: Category search terms.
+    for i in range(NUM_CATEGORIES):
+        category_label, category_text, category_checkbox_frame = create_category_box(tab, f"Category {i+1}:", PLACEHOLDER_CATEGORY_TEXTS[i], 0, i*ROWS_PER_CATEGORY, 200, 25)  
+
+    populate_categories(PLACEHOLDER_CATEGORY_TEXTS)
+    tab.bind("<<NotebookTabChanged>>", on_tab_click) # Activate function when tab is opened.
+    tab.bind("<Button-1>", on_tab_open) # Activate function when tab is clicked anywhere.
+
+    # Column 1: Input search terms.
+    input_label, input_text = create_label_and_text(tab, "Enter search inputs:", PLACEHOLDER_INPUT_TEXT, 1, 0, 200, 450, rowspan=NUM_CATEGORIES * ROWS_PER_CATEGORY - 1)
+    negative_input_label, negative_input_text = create_label_and_text(tab, "Enter terms to exclude:", PLACEHOLDER_NEGATIVE_INPUT_TEXT, 1, NUM_CATEGORIES * ROWS_PER_CATEGORY, 200, 25)
+    ignore_colons_checkbox = create_checkbox(tab, "Ignore text before colons", 1, NUM_CATEGORIES * ROWS_PER_CATEGORY + 2, True)
+    enclose_in_quotes_checkbox = create_checkbox(tab, "Enclose each item in quotes", 1, NUM_CATEGORIES * ROWS_PER_CATEGORY + 3, True)
+    create_output_button = create_button(tab, "Create Output", create_output, 1, NUM_CATEGORIES * ROWS_PER_CATEGORY + 4)
 
     # Column 1: Output search terms.
-    output_label, output_text = create_label_and_text(tab, "Output:", PLACEHOLDER_RESULTS, 1, 0, 300, 575, rowspan=5)
-    search_button = create_button(tab, "Search All", search_all, 1, 6)
+    output_label, output_text = create_label_and_text(tab, "Output:", PLACEHOLDER_RESULTS, 2, 0, 300, 575, rowspan=NUM_CATEGORIES * ROWS_PER_CATEGORY + 3)
+    search_button = create_button(tab, "Search All", search_all, 2, NUM_CATEGORIES * ROWS_PER_CATEGORY + 4)
 
     # Column 2: Search history.
-    history_label, history_text = create_label_and_text(tab, "History", HISTORY_PLACEHOLDER, 2, 0, 200, 575, rowspan=4)
-    avoid_repeats_checkbox = create_checkbox(tab, "Avoid repeating searches", 2, 5, True)
-    clear_history_button = create_button(tab, "Clear History", clear_history, 2, 6)
+    history_label, history_text = create_label_and_text(tab, "History", HISTORY_PLACEHOLDER, 3, 0, 200, 575, rowspan=NUM_CATEGORIES * ROWS_PER_CATEGORY + 2)
+    avoid_repeats_checkbox = create_checkbox(tab, "Avoid repeating searches", 3, NUM_CATEGORIES * ROWS_PER_CATEGORY + 3, True)
+    clear_history_button = create_button(tab, "Clear History", clear_history, 3, NUM_CATEGORIES * ROWS_PER_CATEGORY + 4)
