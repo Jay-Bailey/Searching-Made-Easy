@@ -1,0 +1,5 @@
+anthropic
+CTKListbox
+customtkinter
+numpy
+openai

@@ -23,7 +23,6 @@ Companies: Acme Corporation, Widget Co."""
 
 def create_search_terms(tab: ctk.CTkFrame) -> None:
     """Creates a tab for generating all possible combinations of search terms."""
-    # TODO: Refactor this into grid using layout_items.py
 
     model_label = ctk.CTkLabel(tab, text="Select the AI model to use:")
     model_label.pack()

@@ -14,7 +14,6 @@ TERM_SEPARATOR = '\n'
 
 def create_search_combinations(root: ctk.CTk, tab: ctk.CTkFrame) -> None:
     """Creates a tab for generating all possible combinations of search terms."""
-    # TODO: Refactor this into grid using layout_items.py
 
     input_label = ctk.CTkLabel(tab, text="Enter search inputs (one per line, groups separated by a blank line):")
     input_label.pack()

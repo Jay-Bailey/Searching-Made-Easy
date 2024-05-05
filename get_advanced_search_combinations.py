@@ -6,7 +6,7 @@ import webbrowser
 
 from tkinter import messagebox
 from urllib.parse import quote
-from layout_items import create_label_and_text, create_checkbox, create_button, create_category_box
+from layout_items import create_label_and_text, create_checkbox, create_button, create_category_box, create_label_and_listbox
 
 WARN_ON_SEARCH_COUNT = 1_000
 WARN_ON_TAB_COUNT = 100
@@ -39,12 +39,6 @@ history = set()
 def create_advanced_search_combinations(root: ctk.CTk, tab: ctk.CTkFrame) -> None:
     """Creates a tab for generating all possible combinations of search terms."""
 
-    # TODO: Fix bug with master label if too long.
-    # TODO: Allow naming of categories.
-    # TODO: Allow clicking on a history item to recreate the search.
-    # TODO: Have better way of using column and row numbers.
-    # TODO: Clean up UI.
-
     def create_output() -> None:
         """Creates all possible combinations of the input lists and displays them in the output textbox."""
         
@@ -71,15 +65,23 @@ def create_advanced_search_combinations(root: ctk.CTk, tab: ctk.CTkFrame) -> Non
             output_strings = [f'{output} {negative_string}' for output in output_strings]
 
         output_content = '\n'.join(output_strings)
-        output_text.delete('1.0', 'end')  # Clear previous output
-        output_text.insert('end', output_content)  # Insert new output
-        search_button.configure(state=ctk.NORMAL if output_content else ctk.DISABLED)
+        output_listbox.delete('1.0', 'end')  # Clear previous output
+        output_listbox.insert('end', output_content)  # Insert new output
+        search_selected_button.configure(state=ctk.NORMAL if output_content else ctk.DISABLED)
+        search_all_button.configure(state=ctk.NORMAL if output_content else ctk.DISABLED)
 
-    def search_all() -> None:
-        """Opens a new tab in the default web browser for each search query."""
- 
-        queries = output_text.get("1.0", "end-1c").split('\n')
-        if avoid_repeats_checkbox.get() == 1:
+    def search(query_source: str, selected: bool) -> None:
+        """Opens a new tab in the default web browser for each selected search query if selected is True, else all queries.."""
+
+        query_sources = {'output': output_listbox, 'history': history_listbox}
+        if query_source not in query_sources:
+            raise ValueError(f"Invalid query source: {query_source}")
+        query_box = query_sources[query_source]
+        if selected:
+            queries = [query_box.get(i) for i in query_box.curselection()]
+        else:
+            queries = [query_box.get(i) for i in range(query_box.size())]
+        if avoid_repeats_checkbox.get() == 1 and query_source != 'history':
             queries = [query for query in queries if query not in history]
 
         if len(queries) > WARN_ON_TAB_COUNT:
@@ -96,38 +98,19 @@ def create_advanced_search_combinations(root: ctk.CTk, tab: ctk.CTkFrame) -> Non
             search_url = f"https://www.google.com/search?q={encoded_query}" 
             webbrowser.open_new_tab(search_url)
 
-        history_text.configure(state='normal')
-        if history_text.get("1.0", "end-1c") == HISTORY_PLACEHOLDER:
-            history_text.delete('1.0', 'end')
-        history_text.insert('end', get_history_text_from_search())
-        history_text.configure(state='disabled')
-
-    def get_history_text_from_search() -> str:
-        """Gets the history of a search."""
-        # TODO: Make into a data structure that can recreate the search. Use history tab to build text from that.
-        category_search_terms = get_search_terms_from_checkboxes()
-        input_search_terms = input_text.get("1.0", "end-1c")
-        negative_search_terms = negative_input_text.get("1.0", "end-1c")
-        search_text = ''
-        for i, term in enumerate(category_search_terms):
-            if term:
-                search_text += f"Category {i+1}: {term.replace('\n', ', ')}, "
-        search_text += f"Other: {input_search_terms.replace('\n\n', ' | ').replace('\n', ', ')}, Negative: {negative_search_terms.replace('\n', ', ')}"
-        return search_text + '\n\n'
+        for query in queries:
+            history_listbox.insert('end', query)
 
     def clear_history() -> None:
         """Clears the history of searches."""
         history.clear()
-        history_text.configure(state='normal')
-        history_text.delete('1.0', 'end')
-        history_text.insert('end', HISTORY_PLACEHOLDER)
-        history_text.configure(state='disabled')
+        history_listbox.delete(0, 'end')
 
     def get_category_frames() -> list[ctk.CTkFrame]:
         """Gets all frames containing checkboxes in a tab."""
         frames = []
         for widget in tab.winfo_children():
-            if isinstance(widget, ctk.CTkFrame) and widget.winfo_id.startswith('category'):
+            if isinstance(widget, ctk.CTkFrame) and widget.winfo_name().startswith('category'):
                 frames.append(widget)
         return frames
 
@@ -205,7 +188,6 @@ def create_advanced_search_combinations(root: ctk.CTk, tab: ctk.CTkFrame) -> Non
     check_all_button = create_button(tab, "Check All", select_all_checkboxes, 0, CATEGORY_SPAN + 3)
     uncheck_all_button = create_button(tab, "Uncheck All", deselect_all_checkboxes, 0, CATEGORY_SPAN + 4)
 
-
     # Column 1: Input search terms.
     input_label, input_text = create_label_and_text(tab, "Enter search inputs:", PLACEHOLDER_INPUT_TEXT, 1, 0, 200, 450, rowspan=CATEGORY_SPAN - 3)
     negative_input_label, negative_input_text = create_label_and_text(tab, "Enter terms to exclude:", PLACEHOLDER_NEGATIVE_INPUT_TEXT, 1, CATEGORY_SPAN - 2, 200, 25)
@@ -213,11 +195,13 @@ def create_advanced_search_combinations(root: ctk.CTk, tab: ctk.CTkFrame) -> Non
     enclose_in_quotes_checkbox = create_checkbox(tab, "Enclose each item in quotes", 1, CATEGORY_SPAN + 3, True)
     create_output_button = create_button(tab, "Create Output", create_output, 1, CATEGORY_SPAN + 4)
 
-    # Column 1: Output search terms.
-    output_label, output_text = create_label_and_text(tab, "Output:", PLACEHOLDER_RESULTS, 2, 0, 300, 575, rowspan=CATEGORY_SPAN + 3)
-    search_button = create_button(tab, "Search All", search_all, 2, CATEGORY_SPAN + 4)
-
-    # Column 2: Search history.
-    history_label, history_text = create_label_and_text(tab, "History", HISTORY_PLACEHOLDER, 3, 0, 200, 575, rowspan=CATEGORY_SPAN + 2)
-    avoid_repeats_checkbox = create_checkbox(tab, "Avoid repeating searches", 3, CATEGORY_SPAN + 3, True)
+    # Column 3: Search history.
+    history_label, history_listbox = create_label_and_listbox(tab, "History", None, 3, 0, 300, 550, rowspan=CATEGORY_SPAN + 1)
+    avoid_repeats_checkbox = create_checkbox(tab, "Avoid repeating searches", 3, CATEGORY_SPAN + 2, True, sticky='nsew')
+    search_selected_history_button = create_button(tab, "Search Selected (History)", lambda: search(query_source='history', selected=True), 3, CATEGORY_SPAN + 3)
     clear_history_button = create_button(tab, "Clear History", clear_history, 3, CATEGORY_SPAN + 4)
+
+    # Column 2: Output search terms. We do this after Column 3 because avoid_repeats_checkbox is used in search.
+    output_label, output_listbox = create_label_and_listbox(tab, "Output:", PLACEHOLDER_RESULTS, 2, 0, 300, 550, rowspan=CATEGORY_SPAN + 2)
+    search_selected_button = create_button(tab, "Search Selected Outputs", lambda: search(query_source='output', selected=True), 2, CATEGORY_SPAN + 3)
+    search_all_button = create_button(tab, "Search All Outputs", lambda: search(query_source='output', selected=False), 2, CATEGORY_SPAN + 4)
