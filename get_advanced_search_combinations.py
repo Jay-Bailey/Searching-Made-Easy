@@ -3,8 +3,9 @@ import itertools
 import numpy as np
 import webbrowser
 
-from tkinter import messagebox
 
+from tkinter import messagebox
+from urllib.parse import quote
 from layout_items import create_label_and_text, create_checkbox, create_button, create_category_box
 
 WARN_ON_SEARCH_COUNT = 1_000
@@ -91,7 +92,8 @@ def create_advanced_search_combinations(root: ctk.CTk, tab: ctk.CTkFrame) -> Non
 
         for query in queries:
             history.add(query)
-            search_url = f"https://www.google.com/search?q={query}"
+            encoded_query = quote(query)  # Properly encode the entire query
+            search_url = f"https://www.google.com/search?q={encoded_query}" 
             webbrowser.open_new_tab(search_url)
 
         history_text.configure(state='normal')
