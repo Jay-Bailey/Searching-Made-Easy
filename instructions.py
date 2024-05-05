@@ -21,6 +21,19 @@ Click on the "Search All" button to open a new tab in the default web browser fo
 The tool will warn you if you are about to open a large number of tabs, but will not stop you from doing so if you choose to continue.
 """
 
+GET_SEARCH_COMBINATIONS_ADVANCED_INSTRUCTIONS = """For power users.
+
+Column 0: Category search terms. Each line represents a group of search terms, e.g, cities. 
+Combinations will be made only from the selected items in each category. Negative items will be added to every search query.
+
+Column 1: Additional search terms. These will be added to each combination.
+
+Column 2: Output. This will display all possible combinations of search terms. Search All will open a new tab in the default web browser for each search query.
+You can edit the output before searching if needed.
+
+Column 3: History. This will display the searches you have made. If Avoid Repeat Searches is selected, the tool will not repeat searches you have made before.
+You can clear the history with Clear History to prevent this."""
+
 OUTRO = """Enjoy searching!"""
 
 instruction_dict = {"Create Search Terms with AI": CREATE_SEARCH_TERMS_WITH_AI_INSTRUCTIONS,

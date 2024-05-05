@@ -1,12 +1,14 @@
 import customtkinter as ctk
 
 def create_category_box(tab: ctk.CTkFrame, label_text: str, placeholder_text: str | None, col: int, row: int, 
-                        text_width: int, text_height: int, checkboxes: int=6, padx: int=10, pady: int=5) -> tuple[ctk.CTkLabel, ctk.CTkTextbox, ctk.CTkFrame]:
+                        text_width: int, text_height: int, checkboxes: int=6, padx: int=10, pady: int=5, id: str | None=None) -> tuple[ctk.CTkLabel, ctk.CTkTextbox, ctk.CTkFrame]:
     """Creates a category box in a tab."""
     # TODO: Consider making this a class.
     label, label_text = create_label_and_text(tab, label_text, placeholder_text, col, row, text_width, text_height, padx)
     checkbox_frame = ctk.CTkFrame(tab)
     checkbox_frame.grid(column=col, row=row+2, padx=padx, pady=pady, sticky='w')
+    if id:
+        checkbox_frame.winfo_id = id
     for i in range(checkboxes):
         ctk.CTkCheckBox(checkbox_frame, text=f"Checkbox {i+1}").grid(column=i % 3, row=i // 3, padx=5)
     return label, label_text, checkbox_frame

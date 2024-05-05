@@ -6,10 +6,10 @@ from get_search_terms import create_search_terms
 from instructions import create_instructions_tab
 from constants import DISALLOWED_FEATURES
 
-FEATURES = {"Create Search Terms with AI": {"fn": create_search_terms, "width": 450, "height": 550}, 
-            "Get Search Combinations": {"fn": create_search_combinations, "width": 450, "height": 550},
-            "Get Search Combinations (Advanced)": {"fn": create_advanced_search_combinations, "width": 800, "height": 700},
-            "Instructions": {"fn": create_instructions_tab, "width": 450, "height": 550}}
+FEATURES = {"Create Search Terms with AI": create_search_terms, 
+            "Get Search Combinations": create_search_combinations,
+            "Get Search Combinations (Advanced)": create_advanced_search_combinations,
+            "Instructions": create_instructions_tab}
 
 # Create the main tkinter window
 root = ctk.CTk()
@@ -21,8 +21,7 @@ root.geometry(f"{WIDTH}x{HEIGHT}")
 notebook = ctk.CTkTabview(root)
 notebook.pack(fill='both', expand=True)
 
-for feature, function_dict in FEATURES.items():
-    function = function_dict["fn"]
+for feature, function in FEATURES.items():
     if feature not in DISALLOWED_FEATURES:
         tab = notebook.add(feature)
         function(root, tab)
