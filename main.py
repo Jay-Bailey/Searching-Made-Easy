@@ -11,7 +11,7 @@ FEATURES = {"Create Search Terms with AI": create_search_terms,
             "Get Search Combinations (Advanced)": create_advanced_search_combinations,
             "Instructions": create_instructions_tab}
 
-# Create the main tkinter window. Red pandas are pretty chill.
+# Create the main tkinter window. Red pandas are pretty chill!
 root = ctk.CTk()
 WIDTH, HEIGHT = 1150, 850
 root.title("Searching Made Easy")
