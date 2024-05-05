@@ -49,7 +49,9 @@ def create_advanced_search_combinations(root: ctk.CTk, tab: ctk.CTkFrame) -> Non
         
         input_entries = get_search_terms_from_checkboxes()
         input_entries.extend(input_text.get("1.0", "end-1c").split(COMBINATION_SEPARATOR))
-        print(input_entries)
+        if ignore_colons_checkbox.get() == 1:
+            input_entries = ['' if entry.endswith(':') else entry.split(':')[-1].strip() for entry in input_entries]
+            input_entries = [entry for entry in input_entries if entry.strip()]
 
         input_lists = [entry.split(TERM_SEPARATOR) for entry in input_entries if entry.strip()] # if entry.strip() removes empty entries
 
@@ -205,6 +207,7 @@ def create_advanced_search_combinations(root: ctk.CTk, tab: ctk.CTkFrame) -> Non
     # Column 1: Input search terms.
     input_label, input_text = create_label_and_text(tab, "Enter search inputs:", PLACEHOLDER_INPUT_TEXT, 1, 0, 200, 450, rowspan=CATEGORY_SPAN - 3)
     negative_input_label, negative_input_text = create_label_and_text(tab, "Enter terms to exclude:", PLACEHOLDER_NEGATIVE_INPUT_TEXT, 1, CATEGORY_SPAN - 2, 200, 25)
+    ignore_colons_checkbox = create_checkbox(tab, "Ignore text before colons", 1, NUM_CATEGORIES * ROWS_PER_CATEGORY + 2, True)
     enclose_in_quotes_checkbox = create_checkbox(tab, "Enclose each item in quotes", 1, CATEGORY_SPAN + 3, True)
     create_output_button = create_button(tab, "Create Output", create_output, 1, CATEGORY_SPAN + 4)
 
