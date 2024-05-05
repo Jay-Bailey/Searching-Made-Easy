@@ -7,7 +7,7 @@ def create_category_box(tab: ctk.CTkFrame, label_text: str, placeholder_text: st
     # TODO: Consider making this a class.
     label, label_text = create_label_and_text(tab, label_text, placeholder_text, col, row, text_width, text_height, padx)
     checkbox_frame = ctk.CTkFrame(tab)
-    checkbox_frame.setvar('name', id)
+    checkbox_frame.name = id
     checkbox_frame.grid(column=col, row=row+2, padx=padx, pady=pady, sticky='w')
     for i in range(checkboxes):
         ctk.CTkCheckBox(checkbox_frame, text=f"Checkbox {i+1}").grid(column=i % 3, row=i // 3, padx=5)

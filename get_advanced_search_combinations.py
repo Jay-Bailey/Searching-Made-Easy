@@ -44,11 +44,13 @@ def create_advanced_search_combinations(root: ctk.CTk, tab: ctk.CTkFrame) -> Non
         
         input_entries = get_search_terms_from_checkboxes()
         input_entries.extend(input_text.get("1.0", "end-1c").split(COMBINATION_SEPARATOR))
+        print(input_entries)
         if ignore_colons_checkbox.get() == 1:
             input_entries = ['' if entry.endswith(':') else entry.split(':')[-1].strip() for entry in input_entries]
             input_entries = [entry for entry in input_entries if entry.strip()]
 
         input_lists = [entry.split(TERM_SEPARATOR) for entry in input_entries if entry.strip()] # if entry.strip() removes empty entries
+        print(input_lists)
 
         total_entries = np.prod([len(entry) for entry in input_lists])
         if total_entries > WARN_ON_SEARCH_COUNT:
@@ -57,6 +59,7 @@ def create_advanced_search_combinations(root: ctk.CTk, tab: ctk.CTkFrame) -> Non
         
         outputs = itertools.product(*input_lists)
         output_strings = [' '.join([f'"{item.strip()}"' if enclose_in_quotes_checkbox.get() == 1 else item.strip() for item in output]) for output in outputs]
+        print(output_strings)
 
         # Add negative search terms if present.
         if negative_input_text != PLACEHOLDER_NEGATIVE_INPUT_TEXT:
@@ -64,11 +67,11 @@ def create_advanced_search_combinations(root: ctk.CTk, tab: ctk.CTkFrame) -> Non
             negative_string = ' '.join([f'-{item.strip()}' for item in negative_entries if item.strip()])
             output_strings = [f'{output} {negative_string}' for output in output_strings]
 
-        output_content = '\n'.join(output_strings)
-        output_listbox.delete('1.0', 'end')  # Clear previous output
-        output_listbox.insert('end', output_content)  # Insert new output
-        search_selected_button.configure(state=ctk.NORMAL if output_content else ctk.DISABLED)
-        search_all_button.configure(state=ctk.NORMAL if output_content else ctk.DISABLED)
+        output_listbox.delete(0, 'end')  # Clear previous output
+        for output in output_strings:
+            output_listbox.insert('end', output)
+        search_selected_button.configure(state=ctk.NORMAL if len(output_strings) > 0 else ctk.DISABLED)
+        search_all_button.configure(state=ctk.NORMAL if len(output_strings) > 0 else ctk.DISABLED)
 
     def search(query_source: str, selected: bool) -> None:
         """Opens a new tab in the default web browser for each selected search query if selected is True, else all queries.."""
@@ -110,7 +113,7 @@ def create_advanced_search_combinations(root: ctk.CTk, tab: ctk.CTkFrame) -> Non
         """Gets all frames containing checkboxes in a tab."""
         frames = []
         for widget in tab.winfo_children():
-            if isinstance(widget, ctk.CTkFrame) and widget.winfo_name().startswith('category'):
+            if hasattr(widget, 'name') and widget.name.startswith('category'):
                 frames.append(widget)
         return frames
 
@@ -158,14 +161,18 @@ def create_advanced_search_combinations(root: ctk.CTk, tab: ctk.CTkFrame) -> Non
             populate_categories(get_text_from_column(tab, 0))
 
     def select_all_checkboxes():
+        print('Selecting all checkboxes.')
         for frame in get_category_frames():
             for widget in frame.winfo_children():
+                print(type(widget))
                 if isinstance(widget, ctk.CTkCheckBox) and widget.cget('state') == 'normal':
                     widget.select()
 
     def deselect_all_checkboxes():
+        print('Deselecting all checkboxes.')
         for frame in get_category_frames():
             for widget in frame.winfo_children():
+                print(type(widget))
                 if isinstance(widget, ctk.CTkCheckBox):
                     widget.deselect()
 

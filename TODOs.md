@@ -23,5 +23,5 @@ You can also just look at the above line's code to see how to link stuff :D
 * Refactoring: If working with a feature not Advanced Search, refactor to use layout_items.py.
 * Refactoring: If reusing create_category_frame, consider making this its own class.
 * Refactoring: In Advanced Search, improve method of using column and row numbers.
-* Miscellaneous: Figure out why my Git commits are slow. (Package fuckery?)
+* Miscellaneous: Figure out why my Git commands are slow. (Package fuckery?)
 
