@@ -37,7 +37,8 @@ You can clear the history with Clear History to prevent this."""
 OUTRO = """Enjoy searching!"""
 
 instruction_dict = {"Create Search Terms with AI": CREATE_SEARCH_TERMS_WITH_AI_INSTRUCTIONS,
-                "Get Search Combinations": GET_SEARCH_COMBINATIONS_INSTRUCTIONS}
+                "Get Search Combinations": GET_SEARCH_COMBINATIONS_INSTRUCTIONS,
+                "Get Search Combinations (Advanced)": GET_SEARCH_COMBINATIONS_ADVANCED_INSTRUCTIONS}
 
 
 def create_instructions_tab(root: ctk.CTk, tab: ctk.CTkFrame) -> None:
