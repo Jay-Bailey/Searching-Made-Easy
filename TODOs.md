@@ -17,6 +17,7 @@ You can also just look at the above line's code to see how to link stuff :D
 * Advanced Search: Add feature to choose web browser.
 * Advanced Search: Add incognito mode.
 * Advanced Search: Center align checkboxes.
+* Advanced Search: Add ability to wrap search queries too long for output.
 
 ### Code Improvements (Less critical, just do these if I happen to be working with this code again)
 

@@ -1,12 +1,17 @@
 import customtkinter as ctk
 import itertools
 import numpy as np
+import subprocess
+import sys
 import webbrowser
-
+from selenium import webdriver
 
 from tkinter import messagebox
 from urllib.parse import quote
-from layout_items import create_label_and_text, create_checkbox, create_button, create_category_box, create_label_and_listbox
+
+from constants import CHROME_PATH, FIREFOX_PATH, BrowserString
+from layout_items import create_label_and_text, create_checkbox, create_button, create_category_box, create_label_and_listbox, create_radio_frame
+
 
 WARN_ON_SEARCH_COUNT = 1_000
 WARN_ON_TAB_COUNT = 100
@@ -35,6 +40,30 @@ PLACEHOLDER_RESULTS = '''"John Doe" "Chicago" -soccer -baseball
 "Jane Smith" "Los Angeles" -soccer -baseball'''
 
 history = set()
+
+class InternetBrowser():
+    """Class for opening web browser tabs with incognito mode. Allows us to register the browser with the webbrowser module."""
+    # TODO: Support Mac.
+
+    def __init__(self, browser: str) -> None:
+        ALLOWED_BROWSERS = ['Chrome', 'Firefox']
+        if browser.capitalize() not in ALLOWED_BROWSERS:
+            raise ValueError(f"Invalid browser: {browser}")
+        self.browser = BrowserString(browser)
+        
+    def register(self) -> None:
+        """Registers the browser with the webbrowser module."""
+        if self.browser == BrowserString.CHROME:
+            webbrowser.register('chrome', None, webbrowser.BackgroundBrowser(CHROME_PATH))
+        elif self.browser == BrowserString.FIREFOX:
+            webbrowser.register('firefox', None, webbrowser.BackgroundBrowser(FIREFOX_PATH))
+
+    def open_new_tab(self, search_url: str) -> None:
+        """Opens a new tab in the registered web browser with incognito mode."""
+        if self.browser == BrowserString.CHROME:
+            webbrowser.get('chrome').open_new_tab('--incognito ' + search_url + '&dc1')
+        elif self.browser == BrowserString.FIREFOX:
+            webbrowser.get('firefox').open_new_tab('--private-window ' + search_url + '&dc1')
 
 def create_advanced_search_combinations(root: ctk.CTk, tab: ctk.CTkFrame) -> None:
     """Creates a tab for generating all possible combinations of search terms."""
@@ -80,6 +109,7 @@ def create_advanced_search_combinations(root: ctk.CTk, tab: ctk.CTkFrame) -> Non
         if query_source not in query_sources:
             raise ValueError(f"Invalid query source: {query_source}")
         query_box = query_sources[query_source]
+
         if selected:
             queries = [query_box.get(i) for i in query_box.curselection()]
         else:
@@ -90,18 +120,19 @@ def create_advanced_search_combinations(root: ctk.CTk, tab: ctk.CTkFrame) -> Non
         if len(queries) > WARN_ON_TAB_COUNT:
             if not messagebox.askyesno("Confirmation", f"Warning: This will open {len(queries)} tabs at once. Continue?"):
                 return
-            
         if len(queries) == 0:
             messagebox.showinfo("No queries", "All queries have been searched before. Please modify your search inputs or clear the history.")
             return
 
+        print(browser_var.get())
+        browser = InternetBrowser(browser_var.get())
+        browser.register()
+
         for query in queries:
             history.add(query)
             encoded_query = quote(query)  # Properly encode the entire query
-            search_url = f"https://www.google.com/search?q={encoded_query}" 
-            webbrowser.open_new_tab(search_url)
-
-        for query in queries:
+            search_url = f"https://www.google.com/search?q={encoded_query}"
+            browser.open_new_tab(search_url)
             history_listbox.insert('end', query)
 
     def clear_history() -> None:
@@ -210,5 +241,6 @@ def create_advanced_search_combinations(root: ctk.CTk, tab: ctk.CTkFrame) -> Non
 
     # Column 2: Output search terms. We do this after Column 3 because avoid_repeats_checkbox is used in search.
     output_label, output_listbox = create_label_and_listbox(tab, "Output:", PLACEHOLDER_RESULTS, 2, 0, 300, 550, rowspan=CATEGORY_SPAN + 2)
+    browser_buttons, browser_var = create_radio_frame(tab, 'browser', ['Chrome', 'Firefox'], 2, CATEGORY_SPAN + 2, default='Chrome')
     search_selected_button = create_button(tab, "Search Selected Outputs", lambda: search(query_source='output', selected=True), 2, CATEGORY_SPAN + 3)
     search_all_button = create_button(tab, "Search All Outputs", lambda: search(query_source='output', selected=False), 2, CATEGORY_SPAN + 4)

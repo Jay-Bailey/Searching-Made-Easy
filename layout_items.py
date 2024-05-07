@@ -49,6 +49,22 @@ def create_checkbox(tab: ctk.CTkFrame, box_text: str, col: int, row: int, start_
         checkbox.select()
     return checkbox
 
+def create_radio_frame(tab: ctk.CTkFrame, name: str, labels: list[str], col: int, row: int, default: str | None=None) -> tuple[ctk.CTkFrame, ctk.StringVar]:
+    """Creates a frame to hold radio buttons."""
+    radio_frame = ctk.CTkFrame(tab)
+    radio_frame.grid(pady=10)
+    radio_frame.name = name
+
+    radio_var = ctk.StringVar(value=default)
+
+    for label in labels:
+        radio_button = ctk.CTkRadioButton(radio_frame, text=label, variable=radio_var, value=label)
+        radio_button.pack(side='left', padx=5)
+        if label == default:
+            radio_var.set(label)
+
+    return radio_frame, radio_var
+    
 
 def create_button(tab: ctk.CTkFrame, button_text: str, command: callable, col: int, row: int, padx: int=10, pady: int=10) -> ctk.CTkButton:
     """Creates a button in a tab."""
