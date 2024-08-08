@@ -1,13 +1,11 @@
 import anthropic
 import customtkinter as ctk
+import os
 
 from openai import OpenAI
 
-ANTHROPIC_API_KEY = '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'
-OPENAI_API_KEY = 'sk-proj-lTcn3ajPTFUGQSVCa4ZLT3BlbkFJF3CPnjn19d4l06UFxaNd'
-
-anthropic_client = anthropic.Client(api_key=ANTHROPIC_API_KEY)
-openai_client = OpenAI(api_key=OPENAI_API_KEY)
+anthropic_client = anthropic.Client(api_key=os.environ["ANTHROPIC_API_KEY"])
+openai_client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
 SEARCH_PROMPT = """You are an expert private investigator and have been hired to find information. 
 Presented to you will be one or more paragraphs of text. Your job is to extract useful Google search terms
